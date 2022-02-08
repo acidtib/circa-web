@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="Follow the ups and downs of this little community">
+
+    <title>Circa Diaries</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/img/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/img/favicon/favicon-16x16.png">
+
+    <link href="./assets/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+      .avatar-thumbnail {
+        width: 50px;
+        height: auto;
+      }
+    </style>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-39TYVB46EW"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-39TYVB46EW');
+    </script>
+  </head>
+<body>
+
+  <div class="container col-lg-5 mx-auto p-3 py-md-5">
+    <div class="row">
+      <div class="col-12 mb-4 text-center">
+        <header class="pb-1 mb-2">
+          <h1 class="text-dark text-decoration-none h3">Circa Diaries</h1>
+          <p>Follow the ups and downs of this little community</p>
+        </header>
+      </div>
+
+      <div class="col-12 mb-3"></div>
+    </div>
+
+    <div class="row posts"></div>
+    
+    <footer class="pt-3 my-4 text-muted border-top text-center">
+      <a href="https://github.com/arubinofaux/circa-web" target="_blank" class="link-secondary">GitHub</a>
+    </footer>
+  </div>
+
+  <div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="loadingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <div class="row loading">
+            <div class="col-12 text-center">
+              <img src="./assets/img/loading.gif" alt="loading" class="w-100">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    
+
+  <script src="./assets/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/js/jquery-3.6.0.min.js"></script>
+  <script src="./assets/js/axios.min.js"></script>
+  
+  <script>
+    axios.defaults.baseURL = 'https://api.circadiaries.com';
+
+    let loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'))
+
+    let fetchLoading = false
+    let nextPage = 0
+
+    $(function() {
+      
+      fetchPosts(1)
+
+      $(window).bind('scroll', function() {
+        if($(window).scrollTop() >= $('.posts').offset().top + $('.posts').outerHeight() - window.innerHeight) {
+          
+          if (fetchLoading == false) {
+            if (typeof nextPage != 'undefined' && nextPage) {
+              fetchLoading = true
+
+              hideLoading("show")
+
+              fetchPosts(nextPage)
+            }
+          }
+        }
+      });
+    });
+
+
+    function fetchPosts(page = 1) {
+      hideLoading("show")
+      
+      axios.get('/posts', {
+          params: {
+            page: page
+          }
+        })
+        .then(function (response) {
+          
+          if (response.status == 200) {
+            nextPage = response.data.meta.next_page
+            
+            response.data.data.forEach(function(post) {
+              renderCard(post)
+            })
+
+            fetchLoading = false
+            hideLoading("hide")
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        })  
+    }
+
+    function buildReplies(id, replies) {
+      if (replies.length == 0) {
+        return ``
+      }
+
+      let repliesCol = ""
+
+      replies.forEach(function(reply, index) {
+
+        repliesCol += `
+          <div class="card-footer">
+            <div class="row">
+              <div class="col-2">
+                <img src="${reply.user.avatar}" class="avatar-thumbnail">  
+              </div>
+              <div class="col-10">
+                <strong>${reply.user.name}</strong>
+                <small class="text-muted float-end">${reply.date}</small>
+                <div class="row">
+                  <div class="col-12">
+                    <p class="card-text">${reply.reply}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      })
+
+      return repliesCol
+    }
+
+    function buildCarousel(id, images) {
+      if (images.length == 0) {
+        return ``
+      }
+
+      let cInner = ""
+      let cIndicators = ""
+      let cControl = `
+        <button class="carousel-control-prev" type="button" data-bs-target="#carousel${id}SlidesOnly" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carousel${id}SlidesOnly" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      `
+
+      images.forEach(function(image, index) {
+        let active = ""
+        let activeIndicator = ""
+        if (index == 0) {
+          activeIndicator = "class='active' aria-current='true'"
+          active = "active"
+        }
+
+        cIndicators += `<button type="button" data-bs-target="#carousel${id}SlidesOnly" data-bs-slide-to="${index}" ${activeIndicator} aria-label="Slide ${image.id}"></button>`
+
+        cInner += `<div class="carousel-item ${active}"><img src="${image.source}" class="d-block w-100"></div>`
+      })
+
+      if (images.length == 1) {
+        cIndicators = ``
+        cControl = ``
+      }
+
+      return `
+        <div id="carousel${id}SlidesOnly" class="carousel carousel-dark slide" data-bs-ride="false">
+          <div class="carousel-indicators">${cIndicators}</div>
+
+          <div class='carousel-inner'>${cInner}</div>
+          
+          ${cControl}
+        </div>
+      `
+    }
+
+    function renderCard(data) {
+      $(".posts").append(`
+        <div class="col-12 mb-5">
+          <div class="card border-secondary">
+            ${buildCarousel(data.id, data.images)}
+            
+            <div class="card-header">
+              <div class="row">
+                <div class="col-2">
+                  <img src="${data.user.avatar}" class="avatar-thumbnail">  
+                </div>
+                <div class="col-10">
+                  <strong>${data.user.name}</strong>
+                  <div class="row">
+                    <div class="col-12">
+                      <small class="text-muted">${data.date}</small>
+                      <small class="text-muted float-end"><span class="badge bg-secondary">${data.content_type}</span></small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <h5 class="card-title"><strong>${data.title}</strong></h5>
+              <h6 class="card-subtitle mb-2 text-muted">${data.sub_title}</h6>
+
+              <p class="card-text">${data.content}</p>
+            </div>
+
+            ${buildReplies(data.id, data.replies)}
+          </div>
+        </div>
+      `)
+    }
+
+    function hideLoading(d) {
+      if (d == "show") {
+        loadingModal.show()
+      } else {
+        loadingModal.hide()
+        setTimeout(function(){
+          loadingModal.hide()
+        }, 1000);
+      }
+    }
+  </script>
+      
+</body>
+</html>
