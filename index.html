@@ -35,7 +35,7 @@
 
   <div class="container col-lg-5 mx-auto p-3 py-md-5">
     <div class="row">
-      <div class="col-12 mb-4 text-center">
+      <div class="col-12 mb-4 text-center py-3">
         <header class="pb-1 mb-2">
           <h1 class="text-dark text-decoration-none h3">Circa Diaries</h1>
           <p>Follow the ups and downs of this little community</p>
@@ -69,6 +69,7 @@
 
   <script src="./assets/js/bootstrap.bundle.min.js"></script>
   <script src="./assets/js/jquery-3.6.0.min.js"></script>
+  <script src="./assets/js/moment.min.js"></script>
   <script src="./assets/js/axios.min.js"></script>
   
   <script>
@@ -143,7 +144,7 @@
               </div>
               <div class="col-10">
                 <strong>${reply.user.name}</strong>
-                <small class="text-muted float-end">${reply.date}</small>
+                <small class="text-muted float-end">${format_date(reply.epoch)}</small>
                 <div class="row">
                   <div class="col-12">
                     <p class="card-text">${reply.reply}</p>
@@ -220,7 +221,7 @@
                   <strong>${data.user.name}</strong>
                   <div class="row">
                     <div class="col-12">
-                      <small class="text-muted">${data.date}</small>
+                      <small class="text-muted">${format_date(data.epoch)}</small>
                       <small class="text-muted float-end"><span class="badge bg-secondary">${data.content_type}</span></small>
                     </div>
                   </div>
@@ -239,6 +240,10 @@
           </div>
         </div>
       `)
+    }
+
+    function format_date(epoch) {
+      return moment(parseInt(epoch)).format('MM/DD/YYYY')
     }
 
     function hideLoading(d) {
