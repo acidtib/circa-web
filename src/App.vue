@@ -16,13 +16,7 @@ export default {
   components: {
     MainNavigation,
     MainFooter
-  },
-  // state
-  data() {
-    return {
-      apiUrl: "https://api.local"
-    }
-  },
+  }
 }
 </script>
 
