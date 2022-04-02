@@ -42,7 +42,7 @@
         </div>
 
         <div class="card-body">                  
-          <h5 class="card-title"><router-link :to="'/posts/' + post.id"><strong>{{post.title}}</strong></router-link></h5>
+          <h5 class="card-title"><router-link :to="'/posts/' + post.slug"><strong>{{post.title}}</strong></router-link></h5>
           <h6 class="card-subtitle mb-2 text-muted">{{post.sub_title}}</h6>
           <p class="card-text">{{post.content}}</p>
         </div>
